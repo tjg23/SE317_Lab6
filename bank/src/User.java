@@ -1,9 +1,5 @@
-package bank;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import utility.UtilityAccount;
 
 public class User {
 	private static List<User> users = new ArrayList<>();
@@ -11,8 +7,6 @@ public class User {
 
 	private CheckingAccount checkingAccount;
 	private SavingAccount savingAccount;
-
-	private UtilityAccount utilityAccount;
 
 	public User(String pin, String checkingAccountNumber, double initialCheckingBalance,
 			String savingAccountNumber, double initialSavingBalance) {
@@ -40,20 +34,12 @@ public class User {
 		return null;
 	}
 
-	public void logInUtility(String nameOrNumber, String password) {
-		this.utilityAccount = UtilityAccount.logIn(nameOrNumber, password);
-	}
-
 	public CheckingAccount getCheckingAccount() {
 		return checkingAccount;
 	}
 
 	public SavingAccount getSavingAccount() {
 		return savingAccount;
-	}
-
-	public UtilityAccount getUtilityAccount() {
-		return utilityAccount;
 	}
 
 	public String getPin() {

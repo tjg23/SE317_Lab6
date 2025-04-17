@@ -1,5 +1,3 @@
-package bank;
-
 public class SavingAccount extends BankAccount {
 	private double dailyTransfers;
 	private static final double DAILY_TRANSFER_LIMIT = 100.0;

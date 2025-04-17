@@ -1,5 +1,3 @@
-package utility;
-
 public class Bill {
 	private static int billCounter = 0;
 	private String billNumber;
