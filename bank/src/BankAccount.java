@@ -1,5 +1,3 @@
-package bank;
-
 import java.util.Date;
 
 public class BankAccount {

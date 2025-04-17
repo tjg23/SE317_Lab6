@@ -1,5 +1,3 @@
-package bank;
-
 import utility.Bill;
 
 public class CheckingAccount extends BankAccount {
