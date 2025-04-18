@@ -273,7 +273,7 @@ public class ATMApplication {
     private void handleSavingsBalance() {
         Message request = new Message();
         request.setSenderID("ATM");
-        request.setReceiverID("SAVINGS");
+        request.setReceiverID("BANK");
         request.setMessageType("CHECK_BALANCE");
         request.addData("username", username);
 
@@ -303,7 +303,7 @@ public class ATMApplication {
 
             Message request = new Message();
             request.setSenderID("ATM");
-            request.setReceiverID("SAVINGS");
+            request.setReceiverID("BANK");
             request.setMessageType("DEPOSIT");
             request.addData("username", username);
             request.addData("amount", String.valueOf(amount));
@@ -336,7 +336,7 @@ public class ATMApplication {
 
             Message request = new Message();
             request.setSenderID("ATM");
-            request.setReceiverID("SAVINGS");
+            request.setReceiverID("BANK");
             request.setMessageType("TRANSFER_TO_CHECKING");
             request.addData("username", username);
             request.addData("amount", String.valueOf(amount));
@@ -366,4 +366,29 @@ public class ATMApplication {
         try {
             double amount = Double.parseDouble(amountStr);
             if (amount <= 0) {
-                System.out.println("Amount must be
+                System.out.println("Amount must be positive.");
+                return;
+            }
+
+            Message request = new Message();
+            request.setSenderID("ATM");
+            request.setReceiverID("UTILITY");
+            request.setMessageType("PAY_BILL");
+            request.addData("username", username);
+            request.addData("utilityAccount", utilityAccount);
+            request.addData("amount", String.valueOf(amount));
+
+            Message response = client.sendMessage(request);
+            if ("PAYMENT_ACCEPTED".equals(response.getMessageType())) {
+                System.out.println("Utility bill payment successful!");
+                System.out.println("New Checking balance: $" + response.getData("newBalance"));
+            } else {
+                System.out.println("Payment failed: " + response.getData("reason"));
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid amount format.");
+        } catch (Exception e) {
+            System.out.println("Error communicating with utility company: " + e.getMessage());
+        }
+    }
+}
