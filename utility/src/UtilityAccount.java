@@ -27,6 +27,37 @@ public class UtilityAccount {
         this.bills = new ArrayList<>();
     }
 
+    private void initializeDatabase() {
+        String dbUrl = "jdbc:sqlite:utility.db";
+        try (Connection conn = DriverManager.getConnection(dbUrl);
+             Statement stmt = conn.createStatement()) {
+            // Create accounts table
+            stmt.execute("""
+                    CREATE TABLE IF NOT EXISTS accounts (
+                        account_number TEXT PRIMARY KEY,
+                        username TEXT UNIQUE NOT NULL,
+                        password TEXT NOT NULL
+                    )
+                    """);
+
+            // Create bills table
+            stmt.execute("""
+                    CREATE TABLE IF NOT EXISTS bills (
+                        bill_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        account_number TEXT NOT NULL,
+                        amount REAL NOT NULL,
+                        due_date TEXT NOT NULL,
+                        paid_date TEXT,
+                        FOREIGN KEY (account_number) REFERENCES accounts(account_number)
+                    )
+                    """);
+
+            System.out.println("Database and tables created successfully.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 	private String generateAccountNumber() throws SQLException {
         try (Connection conn = DriverManager.getConnection(DB_URL);
              Statement stmt = conn.createStatement()) {
