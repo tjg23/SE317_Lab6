@@ -3,7 +3,7 @@ import java.util.List;
 import java.util.Map;
 
 public class UtilitySystem {
-	private static final int PORT = 8081;
+	private static final int PORT = 8082;
 	private static final String SYSTEM_ID = "UTIL";
 
 	private Map<String, UtilityAccount> utilityAccounts;
