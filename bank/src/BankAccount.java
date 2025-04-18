@@ -1,6 +1,6 @@
 import java.util.Date;
 
-public class BankAccount {
+public abstract class BankAccount {
 	protected static Integer accountCounter = 0;
 	protected String accountNumber;
 	protected double balance;
@@ -19,23 +19,19 @@ public class BankAccount {
 		this.balance = initialBalance;
 	}
 
-	public String getAccountNumber() {
-		return accountNumber;
-	}
+	abstract protected void saveAccount(String accountType);
 
-	public double getBalance() {
-		return balance;
-	}
+	abstract protected double getDailyDeposits();
 
-	public void deposit(double amount) {
-		if (amount <= 0) {
-			System.out.println("Deposit amount must be positive.");
-		} else if (dailyDeposits + amount > DAILY_DEPOSIT_LIMIT) {
-			System.out.println("Daily deposit limit exceeded. Cannot deposit " + amount);
-		} else {
-			balance += amount;
-			dailyDeposits += amount;
-		}
-	}
+	abstract protected void updateBalanceAndDailyDeposits(double amount, double newDailyDeposits);
 
+	abstract protected String getAccountNumber();
+
+	abstract public double getBalance();
+
+	abstract public void transfer(double amount, BankAccount targetAccount) throws Exception;
+
+	abstract public void deposit(double amount) throws Exception;
+
+	abstract public void resetDailyLimits();
 }
