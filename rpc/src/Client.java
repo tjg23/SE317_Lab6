@@ -8,8 +8,9 @@ public class Client {
 
 	public Client() {
 		this.systemPorts = Map.of(
-				"BANK", 8080,
-				"UTIL", 8081);
+				"ATM", 8080,
+				"BANK", 8081,
+				"UTIL", 8082);
 	}
 
 	public Message sendMessage(Message message) {
