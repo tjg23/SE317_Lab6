@@ -1,42 +1,31 @@
+import java.time.LocalDate;
+
 public class Bill {
-	private static int billCounter = 0;
-	private String billNumber;
-	private double amountDue;
-	private String dueDate;
+    private int billId;
+    private double amount;
+    private LocalDate dueDate;
+    private LocalDate paidDate;
 
-	private String paidDate;
+    public Bill(int billId, double amount, LocalDate dueDate, LocalDate paidDate) {
+        this.billId = billId;
+        this.amount = amount;
+        this.dueDate = dueDate;
+        this.paidDate = paidDate;
+    }
 
-	public Bill(String billNumber, double amountDue, String dueDate) {
-		this.billNumber = billNumber;
-		this.amountDue = amountDue;
-		this.dueDate = dueDate;
-	}
+    public int getBillId() {
+        return billId;
+    }
 
-	public Bill(double amountDue, String dueDate) {
-		this.billNumber = "Bill" + (++billCounter);
-		this.amountDue = amountDue;
-		this.dueDate = dueDate;
-	}
+    public double getAmount() {
+        return amount;
+    }
 
-	public String getBillNumber() {
-		return billNumber;
-	}
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
 
-	public double getAmountDue() {
-		return amountDue;
-	}
-
-	public String getDueDate() {
-		return dueDate;
-	}
-
-	public String getPaidDate() {
-		return paidDate;
-	}
-
-	public void payBill(String paidDate) {
-		this.paidDate = paidDate;
-		System.out.println("Bill " + billNumber + " paid on " + paidDate);
-	}
-
+    public LocalDate getPaidDate() {
+        return paidDate;
+    }
 }
