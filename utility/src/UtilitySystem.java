@@ -17,6 +17,7 @@ public class UtilitySystem {
 	public UtilitySystem() {
 		this.utilityAccounts = loadUtilityAccounts();
 		this.server = new Server(PORT, SYSTEM_ID, this::handleMessage);
+		UtilityAccount.initializeDatabase();
 	}
 
 	private void start() {
