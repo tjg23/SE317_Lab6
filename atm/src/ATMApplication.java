@@ -59,10 +59,7 @@ public class ATMApplication {
         System.out.print("Enter password: ");
         String password = scanner.nextLine();
 
-        Message request = new Message();
-        request.setSenderID("ATM");
-        request.setReceiverID("BANK");
-        request.setMessageType("LOGIN");
+        Message request = new Message("ATM", "BANK", "LOGIN", null);
         request.addData("username", username);
         request.addData("password", password);
 
@@ -83,10 +80,7 @@ public class ATMApplication {
 
     // Handle user logout
     private void logout() {
-        Message request = new Message();
-        request.setSenderID("ATM");
-        request.setReceiverID("BANK");
-        request.setMessageType("LOGOUT");
+        Message request = new Message("ATM", "BANK", "LOGOUT", null);
         request.addData("username", username);
 
         try {
@@ -185,10 +179,7 @@ public class ATMApplication {
 
     // Check checking account balance
     private void handleCheckingBalance() {
-        Message request = new Message();
-        request.setSenderID("ATM");
-        request.setReceiverID("CHECKING");
-        request.setMessageType("CHECK_BALANCE");
+        Message request = new Message("ATM", "CHECKING", "CHECK_BALANCE", null);
         request.addData("username", username);
 
         try {
@@ -215,10 +206,7 @@ public class ATMApplication {
                 return;
             }
 
-            Message request = new Message();
-            request.setSenderID("ATM");
-            request.setReceiverID("CHECKING");
-            request.setMessageType("DEPOSIT");
+            Message request = new Message("ATM", "CHECKING", "DEPOSIT", null);
             request.addData("username", username);
             request.addData("amount", String.valueOf(amount));
 
@@ -248,10 +236,7 @@ public class ATMApplication {
                 return;
             }
 
-            Message request = new Message();
-            request.setSenderID("ATM");
-            request.setReceiverID("CHECKING");
-            request.setMessageType("WITHDRAW");
+            Message request = new Message("ATM", "CHECKING", "WITHDRAW", null);
             request.addData("username", username);
             request.addData("amount", String.valueOf(amount));
 
@@ -271,10 +256,7 @@ public class ATMApplication {
 
     // Check savings account balance
     private void handleSavingsBalance() {
-        Message request = new Message();
-        request.setSenderID("ATM");
-        request.setReceiverID("BANK");
-        request.setMessageType("CHECK_BALANCE");
+        Message request = new Message("ATM", "BANK", "CHECK_BALANCE", null);
         request.addData("username", username);
 
         try {
@@ -301,10 +283,7 @@ public class ATMApplication {
                 return;
             }
 
-            Message request = new Message();
-            request.setSenderID("ATM");
-            request.setReceiverID("BANK");
-            request.setMessageType("DEPOSIT");
+            Message request = new Message("ATM", "BANK", "DEPOSIT", null);
             request.addData("username", username);
             request.addData("amount", String.valueOf(amount));
 
@@ -334,10 +313,7 @@ public class ATMApplication {
                 return;
             }
 
-            Message request = new Message();
-            request.setSenderID("ATM");
-            request.setReceiverID("BANK");
-            request.setMessageType("TRANSFER_TO_CHECKING");
+            Message request = new Message("ATM", "BANK", "TRANSFER_TO_CHECKING", null);
             request.addData("username", username);
             request.addData("amount", String.valueOf(amount));
 
@@ -370,10 +346,7 @@ public class ATMApplication {
                 return;
             }
 
-            Message request = new Message();
-            request.setSenderID("ATM");
-            request.setReceiverID("UTILITY");
-            request.setMessageType("PAY_BILL");
+            Message request = new Message("ATM", "UTILITY", "PAY_BILL", null);
             request.addData("username", username);
             request.addData("utilityAccount", utilityAccount);
             request.addData("amount", String.valueOf(amount));
