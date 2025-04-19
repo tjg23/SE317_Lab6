@@ -4,11 +4,11 @@
 cd "$(dirname "$0")"
 
 # Create logs directory if it doesn't exist
-mkdir -p logs
+mkdir -p _logs
 
 # Start Bank System
 echo "Starting Bank System..."
-java -cp "bank/bin:rpc/rpc.jar:bank/lib/*" BankSystem > logs/bank.log 2>&1 &
+java -cp "bank/bin" BankSystem >_logs/bank.log 2>&1 &
 BANK_PID=$!
 echo "Bank System started with PID: $BANK_PID"
 
@@ -18,7 +18,7 @@ sleep 5
 
 # Start Utility System
 echo "Starting Utility System..."
-java -cp "utility/bin:rpc/rpc.jar:utility/lib/*" UtilitySystem > logs/utility.log 2>&1 &
+java -cp "utility/bin" UtilitySystem >_logs/utility.log 2>&1 &
 UTILITY_PID=$!
 echo "Utility System started with PID: $UTILITY_PID"
 
@@ -28,7 +28,7 @@ sleep 5
 
 # Start ATM Application in foreground
 echo "Starting ATM Application..."
-java -cp "atm/bin:rpc/rpc.jar:atm/lib/*" ATMApplication
+java -cp "atm/bin" ATMApplication
 
 echo "All systems started successfully."
 echo "Bank System PID: $BANK_PID"
@@ -37,4 +37,4 @@ echo "ATM Application has exited."
 echo "To stop Bank and Utility systems, run: ./stop.sh"
 
 # Create a file with PIDs for later cleanup
-echo "$BANK_PID $UTILITY_PID" > running_pids.txt
+echo "$BANK_PID $UTILITY_PID" >_logs/pids.txt

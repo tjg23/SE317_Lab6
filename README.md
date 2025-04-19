@@ -1,6 +1,6 @@
 # ATM System - SE 317 Lab 6
 
-This project implements a distributed ATM system for managing bank accounts (checking and savings) and paying utility bills, as part of SE 317 Lab 6. The system consists of an ATM client, a Bank Server, and a Utility Server, with SQLite databases for persistence.
+This project implements a distributed system for managing bank accounts (checking and savings) and paying utility bills, as part of SE 317 Lab 6. The system consists of an ATM client, a Bank Server, and a Utility Server, with SQLite databases for persistence.
 
 ## Prerequisites
 
@@ -10,55 +10,80 @@ To deploy and run the project, ensure you have the following:
 - **Operating System**: Unix
 - **Command-Line Interface**: For compiling and running the Java programs.
 - **Network**: Localhost network for TCP socket communication (default port: 8080 for the ATM, 8081 for Bank Server, 8082 for Utility Server).
-- **Optional**: IDE like Eclipse, VSCode, or IntelliJ IDEA for easier compilation and debugging.
+- **Optional**: IDE like VSCode or IntelliJ IDEA for easier compilation and debugging.
 
 ## Project Structure
 
-- `ATMApplication.java`: The ATM client interface, allowing users to log in, manage bank accounts, and pay utility bills.
-- `Client.java`: Handles TCP socket communication between the ATM and servers. (Included in `ATMApplication.java` or separate file.)
-- `Message.java`: Defines the message format for client-server communication. (Included in `ATMApplication.java` or separate file.)
-- `bank.db`: SQLite database for bank data (users, accounts, transactions, utility mappings).
-- `utility.db`: SQLite database for utility data (accounts, bills).
+- `rpc/`: Common functionality for inter-process communication, to be compiled as a library for the other projects
+	- `Message.java`: Defines the message format for client-server communication.
+	- `Server.java`: Manages the TCP socket server to accept Messages from clients.
+	- `Client.java`: Used to send Messages to a Server.
+- `atm/`: Frontend application for system I/O via the terminal
+	- `ATMApplication.java`: The ATM client interface, allowing users to log in, manage bank accounts, and pay utility bills.
+- `bank/`: Bank system functionality, including checking & saving account management and TCP server
+	- `BankAccount.java`: Base abstract class for common data & methods between checking & saving accounts
+		- Extended by `CheckingAccount.java` and `SavingAccount.java` for differing implementation details
+	- `BankSystem.java`: The Bank server, implementing account management via RPC
+- `utility/`: Implementation of the Utility company system
+	- `Bill.java`: Contains bill information, such as amount and due date
+	- `UtilityAccount.java`: A customer's account with the utility company
+	- `UtilitySystem.java`: Server for handling remote communication with the utility company.
 
 ## Setup Instructions
 
-1. **Clone or Download the Project**:
+1. **Clone the Project**:
 
-   - If using a repository, clone it: `git clone <https://github.com/tjg23/SE317_Lab6.git>`.
+   - Clone the project repository: `git clone <https://github.com/tjg23/SE317_Lab6.git>`.
 
-2. **Place the SQLite JDBC Driver**:
+2. **Add the SQLite JDBC Driver**:
 
-   - Download `sqlite-jdbc-3.42.0.jar` and place it in the `lib/` directory of the project.
-   - If `lib/` doesn’t exist, create it: `mkdir lib`.
+   - Download `sqlite-jdbc-3.42.0.jar` and place it in the `lib/` directory of both the `bank` and `utility` projects.
 
-### Manual Compilation
+### Building & Running
 
-1. Navigate to the project directory:
+On Unix systems (MacOS / Linux), you can simply use the provided bash scripts to compile and start the system.
 
-   ```bash
-   cd atm-system
-   ```
+```bash
+# Compilation
+sh build.sh
 
-2. Compile all Java files, including the SQLite JDBC driver in the classpath:
+# Running
+sh start.sh
+```
 
-   ```bash
-   javac -cp ".;lib/sqlite-jdbc-3.42.0.jar" *.java
-   ```
+#### Manual Compilation
 
-   - On Windows, use `;` as the classpath separator (as shown).
-   - On macOS/Linux, use `:` (e.g., `javac -cp ".:lib/sqlite-jdbc-3.42.0.jar" *.java`).
+1. Build the shared `rpc` library (as needed)
 
-### Scripted Compilation
+```bash
+# Make the output directory if it doesn't exist
+mkdir -p rpc/bin
 
-   ```bash
-   sh build.sh
-   ```
+javac -d rpc/bin rpc/src/*.java
 
-## Running the Project
+jar cf lib/rpc.jar -C rpc/bin .
+```
 
-   ```bash
-   sh start.sh
-   ```
+2. Build each main project component
+
+```bash
+javac -cp "lib/*" -d bank/bin bank/src/*.java
+javac -cp "lib/*" -d utility/bin utility/src/*.java
+javac -cp "lib/*" -d atm/bin atm/src/*.java
+```
+
+#### Running
+
+```bash
+# Start the bank server in the background
+java -cp "bank/bin" BankSystem >_logs/bank.log 2>&1 &
+
+# Start the utility company server in the background
+java -cp "utility/bin" UtilitySystem >_logs/utility.log 2>&1 &
+
+# Wait a few seconds, then start the ATM application in the foreground
+java -cp "atm/bin" ATMApplication
+```
 
 ## Usage Instructions
 
