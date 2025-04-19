@@ -31,7 +31,7 @@ To deploy and run the project, ensure you have the following:
    - Download `sqlite-jdbc-3.42.0.jar` and place it in the `lib/` directory of the project.
    - If `lib/` doesn’t exist, create it: `mkdir lib`.
 
-### Command-Line Compilation
+### Manual Compilation
 
 1. Navigate to the project directory:
 
@@ -48,7 +48,7 @@ To deploy and run the project, ensure you have the following:
    - On Windows, use `;` as the classpath separator (as shown).
    - On macOS/Linux, use `:` (e.g., `javac -cp ".:lib/sqlite-jdbc-3.42.0.jar" *.java`).
 
-### IDE Compilation
+### Scripted Compilation
 
    ```bash
    sh build.sh
@@ -104,11 +104,8 @@ To deploy and run the project, ensure you have the following:
 
 ## Notes
 
-- The project assumes `BankServer.java` and `UtilityServer.java` are implemented to handle messages from `ATMApplication` and interact with `bank.db` and `utility.db` via JDBC.
 - The `Client` in `ATMApplication.java` uses TCP sockets to communicate with the Bank Server (port 8081).
 - Database triggers or server logic enforce rules (e.g., $5000 daily deposit limit, $500 daily withdrawal limit for checking, $100 daily transfer limit for savings, no overdraft).
-- For testing, capture screenshots of login, menus, operations (e.g., deposit, withdraw, bill payment), and error messages.
-- Sample database files and server implementations are not included; create them based on the assignment requirements.
 
 ## Contact
 

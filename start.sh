@@ -34,7 +34,7 @@ echo "All systems started successfully."
 echo "Bank System PID: $BANK_PID"
 echo "Utility System PID: $UTILITY_PID"
 echo "ATM Application has exited."
-echo "To stop Bank and Utility systems, run: ./stop-system.sh"
+echo "To stop Bank and Utility systems, run: ./stop.sh"
 
 # Create a file with PIDs for later cleanup
 echo "$BANK_PID $UTILITY_PID" > running_pids.txt
