@@ -6,11 +6,25 @@ public class Message implements Serializable {
 	private static final long serialVersionUID = 1L;
 	private String senderId;
 	private String receiverId;
-	private String messageType;
+	private Type messageType;
 	private Map<String, Object> payload;
 	private String correlationId;
 
-	public Message(String senderId, String receiverId, String messageType, Map<String, Object> payload) {
+	public enum Type {
+		DEPOSIT,
+		WITHDRAW,
+		TRANSFER,
+		PAY_BILL,
+		CHECK_BALANCE,
+		LOGIN,
+		LOGOUT,
+		SIGNUP,
+		SUCCESS,
+		DECLINED,
+		ERROR
+	}
+
+	public Message(String senderId, String receiverId, Type messageType, Map<String, Object> payload) {
 		this.senderId = senderId;
 		this.receiverId = receiverId;
 		this.messageType = messageType;
@@ -37,11 +51,11 @@ public class Message implements Serializable {
 		this.receiverId = receiverId;
 	}
 
-	public String getMessageType() {
+	public Type getMessageType() {
 		return messageType;
 	}
 
-	public void setMessageType(String messageType) {
+	public void setMessageType(Type messageType) {
 		this.messageType = messageType;
 	}
 

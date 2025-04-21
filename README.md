@@ -37,7 +37,7 @@ To deploy and run the project, ensure you have the following:
 
 2. **Add the SQLite JDBC Driver**:
 
-   - Download `sqlite-jdbc-3.42.0.jar` and place it in the `lib/` directory of both the `bank` and `utility` projects.
+   - Download `sqlite-jdbc-3.42.0.jar` and place it in the `lib/` directory of the project.
 
 ### Building & Running
 
@@ -118,14 +118,16 @@ java -cp "atm/bin" ATMApplication
 
 5. **Utility Payment**:
 
-   - Enter the utility account number (from `utility.db`’s `utility_accounts` table).
-   - Enter the payment amount (paid from checking account).
-   - Example: `utility account: 123456`, `amount: 50`.
+  - Enter the utility account number (from `utility.db`’s `utility_accounts` table).
+  - Enter the payment amount (paid from checking account).
+  - Example: `utility account: 123456`, `amount: 50`.
 
 6. **Exit**:
 
-   - Choose `0` from the main menu to logout and close the ATM.
-   - Stop the Bank Server and Utility Server manually (e.g., Ctrl+C in their terminals).
+  - Choose `0` from the main menu to logout and close the ATM.
+  - Stop the Bank Server and Utility Server via the stop script or the `kill` command.
+		- If the system was started via `start.sh` simply run `sh stop.sh`
+		- If the system was started manually, find the process IDs with `ps` and end them with `kill`
 
 ## Notes
 
