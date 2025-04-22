@@ -1,2 +1,3 @@
 Error saving account: [SQLITE_BUSY] The database file is locked (database is locked)
+Error saving account: [SQLITE_BUSY] The database file is locked (database is locked)
 BANK server started on port 8081

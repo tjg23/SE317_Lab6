@@ -1,3 +1,8 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -5,6 +10,8 @@ import java.util.Map;
 public class UtilitySystem {
 	private static final int PORT = 8082;
 	private static final String SYSTEM_ID = "UTIL";
+
+	private static final String DB_URL = "jdbc:sqlite:utility.db";
 
 	private Map<String, UtilityAccount> utilityAccounts;
 	private Server server;
@@ -15,7 +22,7 @@ public class UtilitySystem {
 	}
 
 	public UtilitySystem() {
-		UtilityAccount.initializeDatabase();
+		initializeDatabase();
 		this.utilityAccounts = loadUtilityAccounts();
 		this.server = new Server(PORT, SYSTEM_ID, this::handleMessage);
 	}
@@ -34,7 +41,7 @@ public class UtilitySystem {
 		try {
 			switch (messageType) {
 				case SIGNUP:
-					handleCreateAccount(message, response);
+					handleSignup(message, response);
 					break;
 				case LOGIN:
 					handleLogin(message, response);
@@ -43,7 +50,7 @@ public class UtilitySystem {
 					handlePayBill(message, response);
 					break;
 				case VIEW_NEXT_BILL:
-					handleCheckBill(message, response);
+					handleViewBill(message, response);
 					break;
 				case VIEW_BILL_HISTORY:
 					handleBillHistory(message, response);
@@ -61,7 +68,7 @@ public class UtilitySystem {
 		return response;
 	}
 
-	private void handleCreateAccount(Message message, Message response) {
+	private void handleSignup(Message message, Message response) {
 		String username = (String) message.getData("username");
 		String password = (String) message.getData("password");
 
@@ -69,7 +76,7 @@ public class UtilitySystem {
 			UtilityAccount account = new UtilityAccount(username, password);
 			utilityAccounts.put(account.getAccountNumber(), account);
 			response.setMessageType(Message.Type.SUCCESS);
-			response.addData("AccountNumber", account.getAccountNumber());
+			response.addData("accountNumber", account.getAccountNumber());
 		} catch (Exception e) {
 			response.setMessageType(Message.Type.ERROR);
 			response.addData("Error", e.getMessage());
@@ -85,7 +92,7 @@ public class UtilitySystem {
 			if (account != null) {
 				utilityAccounts.put(account.getAccountNumber(), account);
 				response.setMessageType(Message.Type.SUCCESS);
-				response.addData("AccountNumber", account.getAccountNumber());
+				response.addData("accountNumber", account.getAccountNumber());
 			} else {
 				response.setMessageType(Message.Type.ERROR);
 				response.addData("Error", "Invalid username or password");
@@ -103,8 +110,13 @@ public class UtilitySystem {
 		try {
 			UtilityAccount account = utilityAccounts.get(accountId);
 			if (account != null) {
-				account.payBill(amount);
-				response.setMessageType(Message.Type.SUCCESS);
+				try {
+					account.payBill(amount);
+					response.setMessageType(Message.Type.SUCCESS);
+				} catch (Exception e) {
+					response.setMessageType(Message.Type.ERROR);
+					response.addData("Error", e.getMessage());
+				}
 			} else {
 				response.setMessageType(Message.Type.ERROR);
 				response.addData("Error", "Account not found");
@@ -115,7 +127,7 @@ public class UtilitySystem {
 		}
 	}
 
-	private void handleCheckBill(Message message, Message response) {
+	private void handleViewBill(Message message, Message response) {
 		String accountId = (String) message.getData("accountId");
 
 		try {
@@ -124,7 +136,8 @@ public class UtilitySystem {
 				Bill bill = account.getNextBill();
 				if (bill != null) {
 					response.setMessageType(Message.Type.SUCCESS);
-					response.addData("Bill", bill);
+					response.addData("billAmount", bill.getAmount());
+					response.addData("billDueDate", bill.getDueDate());
 				} else {
 					response.setMessageType(Message.Type.ERROR);
 					response.addData("Error", "No bills available");
@@ -147,11 +160,15 @@ public class UtilitySystem {
 			if (account != null) {
 				List<Bill> paidBills = account.getPaidBills();
 				if (paidBills != null && !paidBills.isEmpty()) {
-					if (paidBills.size() > 3) {
-						paidBills = paidBills.subList(0, 3);
-					}
 					response.setMessageType(Message.Type.SUCCESS);
-					response.addData("PaidBills", paidBills);
+					for (int i = 0; i < paidBills.size() && i < 3; i++) {
+						Bill bill = paidBills.get(i);
+						String billTag = String.format("bills[%d]", i);
+						response.addData(billTag + ".id", bill.getBillId());
+						response.addData(billTag + ".amount", bill.getAmount());
+						response.addData(billTag + ".dueDate", bill.getDueDate());
+						response.addData(billTag + ".paidDate", bill.getPaidDate());
+					}
 				} else {
 					response.setMessageType(Message.Type.ERROR);
 					response.addData("Error", "No paid bills available");
@@ -167,8 +184,52 @@ public class UtilitySystem {
 	}
 
 	private Map<String, UtilityAccount> loadUtilityAccounts() {
-		// Load utility accounts from the database or any other source
-		// For simplicity, returning an empty map here
-		return new HashMap<>();
+		Map<String, UtilityAccount> accounts = new HashMap<>();
+		try (Connection conn = DriverManager.getConnection(DB_URL);
+				Statement stmt = conn.createStatement()) {
+			ResultSet rs = stmt.executeQuery("SELECT * FROM accounts");
+			while (rs.next()) {
+				String accountNumber = rs.getString("account_number");
+				String username = rs.getString("username");
+				String password = rs.getString("password");
+				UtilityAccount account = new UtilityAccount(accountNumber, username, password);
+				account.loadBills(); // Load bills from database
+				accounts.put(accountNumber, account);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return accounts;
+	}
+
+	public static void initializeDatabase() {
+		try (Connection conn = DriverManager.getConnection(DB_URL);
+				Statement stmt = conn.createStatement()) {
+			// Create accounts table
+			stmt.execute("""
+					CREATE TABLE IF NOT EXISTS accounts (
+					    account_number TEXT PRIMARY KEY,
+					    username TEXT UNIQUE NOT NULL,
+					    password TEXT NOT NULL
+					)
+					""");
+
+			// Create bills table
+			stmt.execute("""
+					CREATE TABLE IF NOT EXISTS bills (
+					    bill_id INTEGER PRIMARY KEY AUTOINCREMENT,
+					    account_number TEXT NOT NULL,
+					    amount REAL NOT NULL,
+					    due_date TEXT NOT NULL,
+					    paid_date TEXT,
+					    FOREIGN KEY (account_number) REFERENCES accounts(account_number)
+					)
+					""");
+
+			System.out.println("Database and tables created successfully.");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

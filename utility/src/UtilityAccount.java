@@ -20,41 +20,11 @@ public class UtilityAccount {
 		saveToDatabase();
 	}
 
-	private UtilityAccount(String accountNumber, String username, String password) {
+	public UtilityAccount(String accountNumber, String username, String password) {
 		this.accountNumber = accountNumber;
 		this.username = username;
 		this.password = password;
 		this.bills = new ArrayList<>();
-	}
-
-	public static void initializeDatabase() {
-		try (Connection conn = DriverManager.getConnection(DB_URL);
-				Statement stmt = conn.createStatement()) {
-			// Create accounts table
-			stmt.execute("""
-					CREATE TABLE IF NOT EXISTS accounts (
-					    account_number TEXT PRIMARY KEY,
-					    username TEXT UNIQUE NOT NULL,
-					    password TEXT NOT NULL
-					)
-					""");
-
-			// Create bills table
-			stmt.execute("""
-					CREATE TABLE IF NOT EXISTS bills (
-					    bill_id INTEGER PRIMARY KEY AUTOINCREMENT,
-					    account_number TEXT NOT NULL,
-					    amount REAL NOT NULL,
-					    due_date TEXT NOT NULL,
-					    paid_date TEXT,
-					    FOREIGN KEY (account_number) REFERENCES accounts(account_number)
-					)
-					""");
-
-			System.out.println("Database and tables created successfully.");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	private String generateAccountNumber() throws SQLException {
@@ -101,7 +71,7 @@ public class UtilityAccount {
 		}
 	}
 
-	private void loadBills() throws SQLException {
+	public void loadBills() throws SQLException {
 		try (Connection conn = DriverManager.getConnection(DB_URL);
 				PreparedStatement pstmt = conn.prepareStatement(
 						"SELECT * FROM bills WHERE account_number = ?")) {
@@ -184,7 +154,7 @@ public class UtilityAccount {
 				.findFirst().orElse(null);
 	}
 
-	public void payBill(double amount) {
+	public void payBill(double amount) throws Exception {
 		Bill nextBill = getNextBill();
 		if (nextBill != null) {
 			nextBill.pay(amount);
@@ -194,7 +164,7 @@ public class UtilityAccount {
 				e.printStackTrace();
 			}
 		} else {
-			System.out.println("No unpaid bills available.");
+			throw new Exception("No unpaid bills available.");
 		}
 	}
 

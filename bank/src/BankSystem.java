@@ -236,7 +236,7 @@ public class BankSystem {
 				account.withdraw(amount);
 				response.setMessageType(Message.Type.SUCCESS);
 				response.addData("newBalance", account.getBalance());
-				response.addData("paymentDetails", billResponse.getData("paymentDetails"));
+				// response.addData("paymentDetails", billResponse.getData("paymentDetails"));
 				return;
 			}
 		} catch (Exception e) {
