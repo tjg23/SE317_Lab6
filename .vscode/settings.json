@@ -1,6 +1,10 @@
 {
-    "java.project.referencedLibraries": [
-        "lib/**/*.jar",
-        "c:\\Users\\sethc\\Downloads\\junit-4.13.2.jar"
-    ]
+	"java.project.referencedLibraries": ["_lib/**/*.jar"],
+	"java.project.sourcePaths": [
+		"atm/src",
+		"bank/src",
+		"bank/test",
+		"rpc/src",
+		"utility/src"
+	]
 }

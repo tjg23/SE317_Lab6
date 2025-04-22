@@ -10,7 +10,7 @@ mkdir -p _logs
 # Start Bank System
 echo "Starting Bank System..."
 cd "$ROOT_DIR/bank"
-java -cp "bin:$ROOT_DIR/lib/*" BankSystem >"$ROOT_DIR/_logs/bank.log" 2>&1 &
+java -cp "bin:$ROOT_DIR/_lib/*" BankSystem >"$ROOT_DIR/_logs/bank.log" 2>&1 &
 BANK_PID=$!
 echo "Bank System started with PID: $BANK_PID"
 cd "$ROOT_DIR"
@@ -22,7 +22,7 @@ sleep 1
 # Start Utility System
 echo "Starting Utility System..."
 cd "$ROOT_DIR/utility"
-java -cp "bin:$ROOT_DIR/lib/*" UtilitySystem >"$ROOT_DIR/_logs/utility.log" 2>&1 &
+java -cp "bin:$ROOT_DIR/_lib/*" UtilitySystem >"$ROOT_DIR/_logs/utility.log" 2>&1 &
 UTILITY_PID=$!
 echo "Utility System started with PID: $UTILITY_PID"
 cd "$ROOT_DIR"
@@ -33,7 +33,7 @@ sleep 1
 
 # Start ATM Application in foreground
 echo "Starting ATM Application..."
-java -cp "atm/bin:lib/*" ATMApplication
+java -cp "atm/bin:_lib/*" ATMApplication
 
 echo "ATM Application has exited."
 echo "To stop Bank and Utility systems, run: ./stop.sh"
