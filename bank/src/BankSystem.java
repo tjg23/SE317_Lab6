@@ -1,5 +1,6 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
@@ -12,6 +13,7 @@ public class BankSystem {
 
 	private Map<String, CheckingAccount> checkingAccounts;
 	private Map<String, SavingAccount> savingAccounts;
+	private Map<String, User> users;
 
 	private Server server;
 	private Client client;
@@ -22,11 +24,12 @@ public class BankSystem {
 	}
 
 	public BankSystem() {
+		intitializeDatabase();
 		this.checkingAccounts = loadCheckingAccounts();
 		this.savingAccounts = loadSavingAccounts();
+		this.users = loadUsers();
 		this.server = new Server(PORT, SYSTEM_ID, this::handleMessage);
 		this.client = new Client();
-		intitializeDatabase();
 	}
 
 	public void start() {
@@ -42,23 +45,26 @@ public class BankSystem {
 
 		try {
 			switch (messageType) {
-				case Message.Type.DEPOSIT:
+				case DEPOSIT:
 					handleDeposit(message, response);
 					break;
-				case Message.Type.WITHDRAW:
+				case WITHDRAW:
 					handleWithdraw(message, response);
 					break;
-				case Message.Type.TRANSFER:
+				case TRANSFER:
 					handleTransfer(message, response);
 					break;
-				case Message.Type.PAY_BILL:
+				case PAY_BILL:
 					handlePayBill(message, response);
 					break;
-				case Message.Type.CHECK_BALANCE:
+				case VIEW_BALANCE:
 					handleCheckBalance(message, response);
 					break;
-				case Message.Type.LOGIN:
+				case LOGIN:
 					handleLogin(message, response);
+					break;
+				case SIGNUP:
+					handleSignup(message, response);
 					break;
 				default:
 					response.setMessageType(Message.Type.ERROR);
@@ -74,17 +80,43 @@ public class BankSystem {
 	}
 
 	private void handleLogin(Message request, Message response) {
-		String pin = (String) request.getData("pin");
 		String name = (String) request.getData("name");
+		String pin = (String) request.getData("pin");
 
-		User user = User.logIn(name, pin);
-		if (user != null) {
+		User user = users.get(pin);
+		if (user != null && user.getName().equals(name)) {
 			response.setMessageType(Message.Type.SUCCESS);
-			response.addData("user", user);
+			response.addData("checkingAccountId", user.getCheckingAccount().getAccountNumber());
+			response.addData("savingAccountId", user.getSavingAccount().getAccountNumber());
 		} else {
 			response.setMessageType(Message.Type.ERROR);
 			response.addData("Error", "Invalid login credentials.");
 		}
+	}
+
+	private void handleSignup(Message request, Message response) {
+		String name = (String) request.getData("name");
+		String pin = (String) request.getData("pin");
+
+		if (users.containsKey(pin)) {
+			response.setMessageType(Message.Type.ERROR);
+			response.addData("Error", "PIN is taken");
+			return;
+		}
+
+		CheckingAccount checkingAccount = new CheckingAccount(0);
+		checkingAccount.saveAccount("Checking");
+		SavingAccount savingAccount = new SavingAccount(0);
+		savingAccount.saveAccount("Saving");
+		User user = new User(name, pin, checkingAccount, savingAccount);
+		user.saveUser();
+		users.put(pin, user);
+		checkingAccounts.put(checkingAccount.getAccountNumber(), checkingAccount);
+		savingAccounts.put(savingAccount.getAccountNumber(), savingAccount);
+
+		response.setMessageType(Message.Type.SUCCESS);
+		response.addData("checkingAccountId", user.getCheckingAccount().getAccountNumber());
+		response.addData("savingAccountId", user.getSavingAccount().getAccountNumber());
 	}
 
 	private void handleDeposit(Message request, Message response) {
@@ -145,22 +177,23 @@ public class BankSystem {
 	}
 
 	private void handleTransfer(Message request, Message response) {
-		String fromAccountId = (String) request.getData("fromAccountId");
-		String toAccountId = (String) request.getData("toAccountId");
+		String sourceAccountId = (String) request.getData("sourceAccountId");
+		String targetAccountId = (String) request.getData("targetAccountId");
 		double amount = (double) request.getData("amount");
 
-		BankAccount fromAccount = getAccount(fromAccountId);
-		BankAccount toAccount = getAccount(toAccountId);
-		if (fromAccount == null || toAccount == null) {
+		BankAccount sourceAccount = getAccount(sourceAccountId);
+		BankAccount targetAccount = getAccount(targetAccountId);
+		if (sourceAccount == null || targetAccount == null) {
 			response.setMessageType(Message.Type.ERROR);
-			response.addData("Error", "One or both accounts not found: " + fromAccountId + ", " + toAccountId);
+			response.addData("Error", "One or both accounts not found: " + sourceAccountId + ", " + targetAccountId);
 			return;
 		}
 
 		try {
-			fromAccount.transfer(amount, toAccount);
+			sourceAccount.transfer(amount, targetAccount);
 			response.setMessageType(Message.Type.SUCCESS);
-			response.addData("newBalance", fromAccount.getBalance());
+			response.addData("newSourceBalance", sourceAccount.getBalance());
+			response.addData("newTargetBalance", targetAccount.getBalance());
 		} catch (Exception e) {
 			response.setMessageType(Message.Type.ERROR);
 			response.addData("Error", e.getMessage());
@@ -226,11 +259,58 @@ public class BankSystem {
 	}
 
 	private Map<String, CheckingAccount> loadCheckingAccounts() {
-		return new HashMap<>();
+		Map<String, CheckingAccount> accounts = new HashMap<>();
+		try (Connection conn = DriverManager.getConnection(DB_URL);
+				Statement stmt = conn.createStatement()) {
+			String sql = "SELECT * FROM accounts WHERE accountType = 'Checking'";
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				String accountNumber = rs.getString("accountNumber");
+				double balance = rs.getDouble("balance");
+				accounts.put(accountNumber, new CheckingAccount(accountNumber, balance));
+			}
+		} catch (SQLException e) {
+			System.out.println("Error loading checking accounts: " + e.getMessage());
+		}
+		return accounts;
 	}
 
 	private Map<String, SavingAccount> loadSavingAccounts() {
-		return new HashMap<>();
+		Map<String, SavingAccount> accounts = new HashMap<>();
+		try (Connection conn = DriverManager.getConnection(DB_URL);
+				Statement stmt = conn.createStatement()) {
+			String sql = "SELECT * FROM accounts WHERE accountType = 'Saving'";
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				String accountNumber = rs.getString("accountNumber");
+				double balance = rs.getDouble("balance");
+				accounts.put(accountNumber, new SavingAccount(accountNumber, balance));
+			}
+		} catch (SQLException e) {
+			System.out.println("Error loading checking accounts: " + e.getMessage());
+		}
+		return accounts;
+	}
+
+	private Map<String, User> loadUsers() {
+		Map<String, User> users = new HashMap<>();
+		try (Connection conn = DriverManager.getConnection(DB_URL);
+				Statement stmt = conn.createStatement()) {
+			String sql = "SELECT * FROM users";
+			ResultSet rs = stmt.executeQuery(sql);
+			while (rs.next()) {
+				String pin = rs.getString("pin");
+				String name = rs.getString("name");
+				String checkingAccountNum = rs.getString("checkingAccount");
+				CheckingAccount checkingAccount = checkingAccounts.get(checkingAccountNum);
+				String savingAccountNum = rs.getString("savingAccount");
+				SavingAccount savingAccount = savingAccounts.get(savingAccountNum);
+				users.put(pin, new User(name, pin, checkingAccount, savingAccount));
+			}
+		} catch (SQLException e) {
+			System.out.println("Error loading users: " + e.getMessage());
+		}
+		return users;
 	}
 
 	private BankAccount getAccount(String accountId) {

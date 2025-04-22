@@ -3,19 +3,12 @@
 # Navigate to parent directory
 cd "$(dirname "$0")"
 
-# Create output directories if they don't exist
-mkdir -p atm/bin
-mkdir -p bank/bin
-mkdir -p utility/bin
-mkdir -p _logs
+# Create log directory if it doesn't exist
+mkdir _logs
 
-# Compile RPC classes if jar doesn't exist
-if [ ! -f rpc/rpc.jar ]; then
-	echo "No RPC jar found; Compiling RPC classes..."
-	mkdir -p rpc/bin
-	javac -d rpc/bin rpc/src/*.java
-	jar cf lib/rpc.jar -C rpc/bin .
-fi
+# Recompile the RPC library
+javac -d rpc/bin rpc/src/*.java
+jar cf lib/rpc.jar -C rpc/bin .
 
 # Compile Bank System
 echo "Compiling Bank System..."

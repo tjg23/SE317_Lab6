@@ -15,9 +15,9 @@ public class UtilitySystem {
 	}
 
 	public UtilitySystem() {
+		UtilityAccount.initializeDatabase();
 		this.utilityAccounts = loadUtilityAccounts();
 		this.server = new Server(PORT, SYSTEM_ID, this::handleMessage);
-		UtilityAccount.initializeDatabase();
 	}
 
 	private void start() {
@@ -25,7 +25,7 @@ public class UtilitySystem {
 	}
 
 	private Message handleMessage(Message message) {
-		String messageType = message.getMessageType();
+		Message.Type messageType = message.getMessageType();
 		Message response = new Message();
 		response.setReceiverId(message.getSenderId());
 		response.setSenderId(SYSTEM_ID);
@@ -33,28 +33,28 @@ public class UtilitySystem {
 
 		try {
 			switch (messageType) {
-				case "CREATE_ACCOUNT":
+				case SIGNUP:
 					handleCreateAccount(message, response);
 					break;
-				case "LOGIN":
+				case LOGIN:
 					handleLogin(message, response);
 					break;
-				case "PAY_BILL":
+				case PAY_BILL:
 					handlePayBill(message, response);
 					break;
-				case "CHECK_BILL":
+				case VIEW_NEXT_BILL:
 					handleCheckBill(message, response);
 					break;
-				case "BILL_HISTORY":
+				case VIEW_BILL_HISTORY:
 					handleBillHistory(message, response);
 					break;
 				default:
-					response.setMessageType("ERROR");
+					response.setMessageType(Message.Type.ERROR);
 					response.addData("Error", "Unsupported message type: " + messageType);
 					break;
 			}
 		} catch (Exception e) {
-			response.setMessageType("ERROR");
+			response.setMessageType(Message.Type.ERROR);
 			response.addData("Error", e.getMessage());
 		}
 
@@ -68,10 +68,10 @@ public class UtilitySystem {
 		try {
 			UtilityAccount account = new UtilityAccount(username, password);
 			utilityAccounts.put(account.getAccountNumber(), account);
-			response.setMessageType("SUCCESS");
+			response.setMessageType(Message.Type.SUCCESS);
 			response.addData("AccountNumber", account.getAccountNumber());
 		} catch (Exception e) {
-			response.setMessageType("ERROR");
+			response.setMessageType(Message.Type.ERROR);
 			response.addData("Error", e.getMessage());
 		}
 	}
@@ -84,14 +84,14 @@ public class UtilitySystem {
 			UtilityAccount account = UtilityAccount.logIn(nameOrNumber, password);
 			if (account != null) {
 				utilityAccounts.put(account.getAccountNumber(), account);
-				response.setMessageType("SUCCESS");
+				response.setMessageType(Message.Type.SUCCESS);
 				response.addData("AccountNumber", account.getAccountNumber());
 			} else {
-				response.setMessageType("ERROR");
+				response.setMessageType(Message.Type.ERROR);
 				response.addData("Error", "Invalid username or password");
 			}
 		} catch (Exception e) {
-			response.setMessageType("ERROR");
+			response.setMessageType(Message.Type.ERROR);
 			response.addData("Error", e.getMessage());
 		}
 	}
@@ -104,13 +104,13 @@ public class UtilitySystem {
 			UtilityAccount account = utilityAccounts.get(accountId);
 			if (account != null) {
 				account.payBill(amount);
-				response.setMessageType("SUCCESS");
+				response.setMessageType(Message.Type.SUCCESS);
 			} else {
-				response.setMessageType("ERROR");
+				response.setMessageType(Message.Type.ERROR);
 				response.addData("Error", "Account not found");
 			}
 		} catch (Exception e) {
-			response.setMessageType("ERROR");
+			response.setMessageType(Message.Type.ERROR);
 			response.addData("Error", e.getMessage());
 		}
 	}
@@ -123,18 +123,18 @@ public class UtilitySystem {
 			if (account != null) {
 				Bill bill = account.getNextBill();
 				if (bill != null) {
-					response.setMessageType("SUCCESS");
+					response.setMessageType(Message.Type.SUCCESS);
 					response.addData("Bill", bill);
 				} else {
-					response.setMessageType("ERROR");
+					response.setMessageType(Message.Type.ERROR);
 					response.addData("Error", "No bills available");
 				}
 			} else {
-				response.setMessageType("ERROR");
+				response.setMessageType(Message.Type.ERROR);
 				response.addData("Error", "Account not found");
 			}
 		} catch (Exception e) {
-			response.setMessageType("ERROR");
+			response.setMessageType(Message.Type.ERROR);
 			response.addData("Error", e.getMessage());
 		}
 	}
@@ -150,18 +150,18 @@ public class UtilitySystem {
 					if (paidBills.size() > 3) {
 						paidBills = paidBills.subList(0, 3);
 					}
-					response.setMessageType("SUCCESS");
+					response.setMessageType(Message.Type.SUCCESS);
 					response.addData("PaidBills", paidBills);
 				} else {
-					response.setMessageType("ERROR");
+					response.setMessageType(Message.Type.ERROR);
 					response.addData("Error", "No paid bills available");
 				}
 			} else {
-				response.setMessageType("ERROR");
+				response.setMessageType(Message.Type.ERROR);
 				response.addData("Error", "Account not found");
 			}
 		} catch (Exception e) {
-			response.setMessageType("ERROR");
+			response.setMessageType(Message.Type.ERROR);
 			response.addData("Error", e.getMessage());
 		}
 	}
